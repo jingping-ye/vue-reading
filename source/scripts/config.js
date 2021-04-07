@@ -32,6 +32,7 @@ const resolve = (p) => {
   if (aliases[base]) {
     return path.resolve(aliases[base], p.slice(base.length + 1));
   } else {
+    console.log("base=========");
     return path.resolve(__dirname, "../", p);
   }
 };
