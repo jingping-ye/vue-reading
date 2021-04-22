@@ -13,10 +13,11 @@ function Vue(options) {
     warn("Vue is a constructor and should be called with the `new` keyword");
   }
 
-  // 参见 intance/index.js的 L:15
+  // 参见 instance/init.js的 L:15
   this._init(options);
 }
 
+// 为什么这里要从init.js中导出
 initMixin(Vue);
 stateMixin(Vue);
 eventsMixin(Vue);

@@ -19,11 +19,12 @@ const idToTemplate = cached((id) => {
 });
 
 // src/platform/web/runtime/index.js
+// 注意此处最终调用mountComponent方法
 const mount = Vue.prototype.$mount; // 如果已经有$mount,那么获取
 
 /***
- * @param {string|Element} el 元素
- * @param {boolean} hydrating
+ * @param {string|Element} el 挂载元素，字符串或者DOM对象
+ * @param {boolean} hydrating 服务器渲染相关
  */
 Vue.prototype.$mount = function (
   el?: string | Element,
@@ -43,6 +44,8 @@ Vue.prototype.$mount = function (
 
   const options = this.$options; // 获取Vue类的成员方法
   // resolve template/el and convert to render function
+  // 不携带渲染方法，则需要自己转换
+  // 注意：所有的Vue组件的渲染最终需要render方法实现，无论使用单文件.vue方法开发组件，还是写了el或者template属性，最终将会转换为render方法
   if (!options.render) {
     // 如果没有render方法，将el或者template转换为render方法
 
@@ -50,7 +53,9 @@ Vue.prototype.$mount = function (
     let template = options.template;
     if (template) {
       if (typeof template === "string") {
+        // 模板是string类型，且以`#`开头
         if (template.charAt(0) === "#") {
+          // 通过query方法转为DOM对象
           template = idToTemplate(template);
           /* istanbul ignore if */
           if (process.env.NODE_ENV !== "production" && !template) {
@@ -63,6 +68,7 @@ Vue.prototype.$mount = function (
       } else if (template.nodeType) {
         template = template.innerHTML;
       } else {
+        // 非生产环境下提示
         if (process.env.NODE_ENV !== "production") {
           warn("invalid template option:" + template, this);
         }
@@ -72,6 +78,8 @@ Vue.prototype.$mount = function (
       // el处理
       template = getOuterHTML(el);
     }
+
+    // 在线编译，将el和template转为render方法
     if (template) {
       // 模板处理
       /* istanbul ignore if */
@@ -79,6 +87,7 @@ Vue.prototype.$mount = function (
         mark("compile");
       }
 
+      // 此处开始标记
       const { render, staticRenderFns } = compileToFunctions(
         template,
         {
@@ -100,6 +109,8 @@ Vue.prototype.$mount = function (
       }
     }
   }
+
+  // 传参入内执行，挂载$mount
   return mount.call(this, el, hydrating);
 };
 
